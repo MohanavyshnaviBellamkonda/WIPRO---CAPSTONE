@@ -151,19 +151,20 @@ await loginPage.login('wronguser', 'wrongpass');
         await loginPage.login('testuser', '');
     });
 
- });
-   test('AUTH_014 Verify logout functionality', async ({ page }) => {
+    test('AUTH_014 Verify logout functionality', async ({ page }) => {
 
     await loginPage.openLoginModal();
 
-    await loginPage.login(username, password);
+    await loginPage.login('YOUR_USERNAME', 'YOUR_PASSWORD');
 
-    await expect(loginPage.logoutBtn).toBeVisible();
+    await page.waitForSelector('#logout2');
 
     await loginPage.logout();
 
-    await expect(loginPage.loginNavBtn).toBeVisible();
+    await expect(loginPage.loginNavBtn)
+        .toBeVisible();
 });
+
    test('AUTH_015 Verify logged-in username is displayed correctly', async ({ page }) => {
 
     await loginPage.openLoginModal();
@@ -174,4 +175,5 @@ await loginPage.login('wronguser', 'wrongpass');
 
     await expect(loginPage.loggedUser)
         .toContainText('Welcome');
+});
 });
