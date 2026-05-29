@@ -1,52 +1,135 @@
-name: Playwright Tests
+name: Playwright Tests & Allure Report
 
 on:
   push:
     branches:
-      - main
-      - master
+      - "**"
 
   pull_request:
     branches:
       - main
       - master
 
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
 
-    steps:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard_index: [1, 2, 3]
 
+    env:
+      CI: true
+
+    steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: lts/*
+          cache: npm
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
 
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
       - name: Run Playwright Tests
-        run: npx playwright test
+        run: npm run test:ci -- --shard=${{ matrix.shard_index }}/3
 
-      - name: Upload Playwright Report
-        uses: actions/upload-artifact@v4
+      - name: Debug Allure Results
         if: always()
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 30
+        run: |
+          echo "Current Directory:"
+          pwd
 
-      - name: Upload Allure Results
-        uses: actions/upload-artifact@v4
+          echo "Root Files:"
+          ls -la
+
+          echo "Allure Results:"
+          ls -la allure-results || echo "No allure-results folder found"
+
+      - name: Upload Allure Raw Results (Shard)
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: allure-results
-          path: allure-results/
-          retention-days: 30
+          name: allure-results-shard-${{ matrix.shard_index }}
+          path: allure-results
+          if-no-files-found: warn
+          retention-days: 14
+
+  report:
+    if: always()
+    needs: [test]
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Download Allure Raw Results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: allure-results-shard-*
+          merge-multiple: true
+          path: allure-results
+
+      - name: Debug Downloaded Results
+        run: |
+          echo "Downloaded Files:"
+          ls -la
+          ls -la allure-results || echo "No downloaded allure-results"
+
+      - name: Generate Allure Report
+        run: npx allure generate allure-results --clean -o allure-report
+
+      - name: Upload Allure HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Deploy to GitHub Pages
+        if: always() && github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'master')
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-report
