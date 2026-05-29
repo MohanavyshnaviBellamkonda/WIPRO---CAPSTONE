@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { LoginPage } from '../../pages/LoginPage';
+import { LoginPage } from '../../Pages/LoginPage';
 
 test.describe('Authentication Service - DemoBlaze', () => {
 
@@ -151,20 +151,19 @@ await loginPage.login('wronguser', 'wrongpass');
         await loginPage.login('testuser', '');
     });
 
-    test('AUTH_014 Verify logout functionality', async ({ page }) => {
+ });
+   test('AUTH_014 Verify logout functionality', async ({ page }) => {
 
     await loginPage.openLoginModal();
 
-    await loginPage.login('YOUR_USERNAME', 'YOUR_PASSWORD');
+    await loginPage.login(username, password);
 
-    await page.waitForSelector('#logout2');
+    await expect(loginPage.logoutBtn).toBeVisible();
 
     await loginPage.logout();
 
-    await expect(loginPage.loginNavBtn)
-        .toBeVisible();
+    await expect(loginPage.loginNavBtn).toBeVisible();
 });
-
    test('AUTH_015 Verify logged-in username is displayed correctly', async ({ page }) => {
 
     await loginPage.openLoginModal();
@@ -175,5 +174,4 @@ await loginPage.login('wronguser', 'wrongpass');
 
     await expect(loginPage.loggedUser)
         .toContainText('Welcome');
-});
 });
