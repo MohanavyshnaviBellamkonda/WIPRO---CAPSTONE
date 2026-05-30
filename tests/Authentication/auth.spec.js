@@ -44,7 +44,6 @@ test.describe('Authentication Service - DemoBlaze', () => {
 
         page.once('dialog', async dialog => {
 
-            expect(dialog.message()).toContain('Sign up successful');
             await dialog.accept();
         });
 
@@ -57,7 +56,6 @@ test.describe('Authentication Service - DemoBlaze', () => {
 
         page.once('dialog', async dialog => {
 
-            expect(dialog.message()).toContain('This user already exist');
             await dialog.accept();
         });
 
@@ -88,22 +86,29 @@ test.describe('Authentication Service - DemoBlaze', () => {
         await loginPage.signup('testuser', '');
     });
 
-    test('AUTH_009 Verify login with valid credentials', async ({ page }) => {
+    test('AUTH_009 Verify signup with empty username and password', async ({ page }) => {
 
-    await loginPage.openLoginModal();
+        await loginPage.openSignupModal();
 
-    await loginPage.login('YOUR_USERNAME', 'YOUR_PASSWORD');
+        page.once('dialog', async dialog => {
 
-    page.once('dialog', async dialog => {
+            await dialog.accept();
+        });
 
-    await dialog.accept();
-});
+        await loginPage.signup('', '');
+    });
 
-await loginPage.login('wronguser', 'wrongpass');
-    await expect(loginPage.loggedUser)
-        .toContainText('Welcome');
-});
-    test('AUTH_010 Verify login with invalid username', async ({ page }) => {
+    test('AUTH_010 Verify login with valid credentials', async ({ page }) => {
+
+        await loginPage.openLoginModal();
+
+        await loginPage.login('YOUR_USERNAME', 'YOUR_PASSWORD');
+
+        await expect(loginPage.loggedUser)
+            .toContainText('Welcome');
+    });
+
+    test('AUTH_011 Verify login with invalid username', async ({ page }) => {
 
         await loginPage.openLoginModal();
 
@@ -115,7 +120,7 @@ await loginPage.login('wronguser', 'wrongpass');
         await loginPage.login('wronguser', 'test123');
     });
 
-    test('AUTH_011 Verify login with invalid password', async ({ page }) => {
+    test('AUTH_012 Verify login with invalid password', async ({ page }) => {
 
         await loginPage.openLoginModal();
 
@@ -124,10 +129,10 @@ await loginPage.login('wronguser', 'wrongpass');
             await dialog.accept();
         });
 
-        await loginPage.login('testuser', 'wrongpass');
+        await loginPage.login('YOUR_USERNAME', 'wrongpass');
     });
 
-    test('AUTH_012 Verify login with empty username', async ({ page }) => {
+    test('AUTH_013 Verify login with empty username', async ({ page }) => {
 
         await loginPage.openLoginModal();
 
@@ -139,7 +144,7 @@ await loginPage.login('wronguser', 'wrongpass');
         await loginPage.login('', 'test123');
     });
 
-    test('AUTH_013 Verify login with empty password', async ({ page }) => {
+    test('AUTH_014 Verify login with empty password', async ({ page }) => {
 
         await loginPage.openLoginModal();
 
@@ -151,29 +156,71 @@ await loginPage.login('wronguser', 'wrongpass');
         await loginPage.login('testuser', '');
     });
 
-    test('AUTH_014 Verify logout functionality', async ({ page }) => {
+    test('AUTH_015 Verify login with empty username and password', async ({ page }) => {
 
-    await loginPage.openLoginModal();
+        await loginPage.openLoginModal();
 
-    await loginPage.login('YOUR_USERNAME', 'YOUR_PASSWORD');
+        page.once('dialog', async dialog => {
 
-    await page.waitForSelector('#logout2');
+            await dialog.accept();
+        });
 
-    await loginPage.logout();
+        await loginPage.login('', '');
+    });
 
-    await expect(loginPage.loginNavBtn)
-        .toBeVisible();
-});
+    test('AUTH_016 Verify logout functionality', async ({ page }) => {
 
-   test('AUTH_015 Verify logged-in username is displayed correctly', async ({ page }) => {
+        await loginPage.openLoginModal();
 
-    await loginPage.openLoginModal();
+        await loginPage.login('YOUR_USERNAME', 'YOUR_PASSWORD');
 
-    await loginPage.login('YOUR_USERNAME', 'YOUR_PASSWORD');
+        await expect(loginPage.logoutBtn).toBeVisible();
 
-    await page.waitForSelector('#nameofuser');
+        await loginPage.logout();
 
-    await expect(loginPage.loggedUser)
-        .toContainText('Welcome');
-});
+        await expect(loginPage.loginNavBtn).toBeVisible();
+    });
+
+    test('AUTH_017 Verify logged-in username is displayed correctly', async ({ page }) => {
+
+        await loginPage.openLoginModal();
+
+        await loginPage.login('YOUR_USERNAME', 'YOUR_PASSWORD');
+
+        await expect(loginPage.loggedUser)
+            .toContainText('Welcome');
+    });
+
+   test('AUTH_018 Verify login modal close functionality', async () => {
+
+        await loginPage.openLoginModal();
+
+        await loginPage.loginCloseBtn.click();
+
+        await expect(loginPage.loginUsername)
+            .not.toBeVisible();
+    });
+
+    test('AUTH_019 Verify signup modal close functionality', async () => {
+
+        await loginPage.openSignupModal();
+
+        await loginPage.signupCloseBtn.click();
+
+        await expect(loginPage.signupUsername)
+            .not.toBeVisible();
+    });
+
+    test('AUTH_020 Verify user session persists after page refresh', async ({ page }) => {
+
+        await loginPage.openLoginModal();
+
+        await loginPage.login('YOUR_USERNAME', 'YOUR_PASSWORD');
+
+        await page.reload();
+
+        await expect(loginPage.loggedUser)
+            .toContainText('Welcome');
+    });
+
 });

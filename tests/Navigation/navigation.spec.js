@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-import { NavigationPage } from '../../pages/NavigationPage';
+import { NavigationPage } from '../../Pages/NavigationPage';
 
 test.describe('Navigation Service - DemoBlaze', () => {
 

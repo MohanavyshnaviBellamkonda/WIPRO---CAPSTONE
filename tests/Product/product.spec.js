@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-import { ProductPage } from '../../pages/ProductPage';
+import { ProductPage } from '../../Pages/ProductPage';
 
 test.describe('Product Catalog Service - DemoBlaze', () => {
 

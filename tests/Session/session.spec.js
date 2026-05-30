@@ -2,7 +2,7 @@
 
 import { test, expect } from '@playwright/test';
 
-import { SessionPage } from '../../pages/SessionPage';
+import { SessionPage } from '../../Pages/SessionPage';
 
 test.describe('User Session Management Service - DemoBlaze', () => {
 
